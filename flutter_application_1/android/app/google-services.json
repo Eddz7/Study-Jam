@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "138134172412",
+    "project_id": "study-jam-df325",
+    "storage_bucket": "study-jam-df325.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:138134172412:android:7db5664dac3081d14b1d79",
+        "android_client_info": {
+          "package_name": "com.example.studyjam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "138134172412-8b9ikqpshf1huhcbhjnko3ppndst7ier.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUcwgSMoZ7giM3-gVr5_j_trLdeVlIO_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "138134172412-8b9ikqpshf1huhcbhjnko3ppndst7ier.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
