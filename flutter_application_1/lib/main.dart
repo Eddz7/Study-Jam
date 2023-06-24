@@ -1,412 +1,125 @@
 import 'package:flutter/material.dart';
-void main() => runApp(StudyJamApp());
 
-class StudyJamApp extends StatelessWidget {
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Study Jam',
+      title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        // This is the theme of your application.
+        //
+        // TRY THIS: Try running your application with "flutter run". You'll see
+        // the application has a blue toolbar. Then, without quitting the app,
+        // try changing the seedColor in the colorScheme below to Colors.green
+        // and then invoke "hot reload" (save your changes or press the "hot
+        // reload" button in a Flutter-supported IDE, or press "r" if you used
+        // the command line to start the app).
+        //
+        // Notice that the counter didn't reset back to zero; the application
+        // state is not lost during the reload. To reset the state, use hot
+        // restart instead.
+        //
+        // This works for code too, not just values: Most code changes can be
+        // tested with just a hot reload.
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
+        useMaterial3: true,
       ),
-      home: StudyJamHomePage(),
-      routes: {
-        '/login': (context) => LoginPage(),
-        '/register': (context) => RegisterPage(),
-        '/study': (context) => StudyPage(),
-        '/createEvent': (context) => CreateEventPage(),
-        '/events': (context) => EventsPage(),
-      },
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class StudyJamHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        title: Text('Study Jam'),
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
       ),
       body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
         child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
+            const Text(
+              'You have pushed the button this many times:',
+            ),
             Text(
-              'Study Jam',
-              style: TextStyle(fontSize: 24),
-            ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              child: Text('Login'),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: Text('Register'),
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class LoginPage extends StatelessWidget {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-              ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Perform login logic here
-                String email = emailController.text;
-                String password = passwordController.text;
-
-                // Check for a valid email format using regex
-                RegExp emailRegex = RegExp(
-                    r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-                if (!emailRegex.hasMatch(email)) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Invalid Email'),
-                        content: Text('Please enter a valid email.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if email is invalid
-                }
-
-                if (password.isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('No Password'),
-                        content: Text('Please enter a password.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if password is empty
-                }
-
-                // Add your login code here
-                print('Email: $email, Password: $password');
-
-                // Redirect to the Study Page
-                Navigator.pushNamed(context, '/study');
-              },
-              child: Text('Login'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class RegisterPage extends StatelessWidget {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Register'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-              ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-              ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Perform registration logic here
-                String name = nameController.text;
-                String email = emailController.text;
-                String password = passwordController.text;
-                // Add your registration code here
-
-                // Check for a valid email format using regex
-                RegExp emailRegex = RegExp(
-                    r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-                if (!emailRegex.hasMatch(email)) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Invalid Email'),
-                        content: Text('Please enter a valid email.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if email is invalid
-                }
-
-                if (password.isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('No Password'),
-                        content: Text('Please enter a password.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if password is empty
-                }
-
-                print('Name: $name, Email: $email, Password: $password');
-
-                // Redirect to the Study Page
-                Navigator.pushNamed(context, '/study');
-              },
-              child: Text('Register'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class StudyPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Study Jam. Let\'s Study'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.pushNamed(context, '/createEvent');
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Text('Welcome to Study Jam. Let\'s Study'),
-      ),
-    );
-  }
-}
-
-class CreateEventPage extends StatefulWidget {
-  @override
-  _CreateEventPageState createState() => _CreateEventPageState();
-}
-
-class _CreateEventPageState extends State<CreateEventPage> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController timeController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-  final TextEditingController roomLimitController = TextEditingController();
-  String errorText = '';
-
-  void saveEvent() {
-    String title = titleController.text;
-    String time = timeController.text;
-    String location = locationController.text;
-    String roomLimit = roomLimitController.text;
-
-    if (!isValidTime(time)) {
-      setState(() {
-        errorText = 'Please enter a valid time (HH:MM)';
-      });
-      return;
-    }
-
-    // Add your event saving code here
-    print('Title: $title, Time: $time, Location: $location, Room Limit: $roomLimit');
-
-    // Redirect to the Events Page
-    Navigator.pushNamed(
-      context,
-      '/events',
-      arguments: {
-        'title': title,
-        'time': time,
-        'location': location,
-        'roomLimit': roomLimit,
-      },
-    );
-  }
-
-  bool isValidTime(String time) {
-    RegExp timeRegex = RegExp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$');
-    return timeRegex.hasMatch(time);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Create an Event'),
-      ),
-      body: SingleChildScrollView( // Wrap with SingleChildScrollView
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: timeController,
-                decoration: InputDecoration(
-                  labelText: 'Time',
-                  errorText: errorText.isNotEmpty ? errorText : null,
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: locationController,
-                decoration: InputDecoration(
-                  labelText: 'Location',
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: roomLimitController,
-                decoration: InputDecoration(
-                  labelText: 'Room Limit',
-                ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: saveEvent,
-                child: Text('Save'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class EventsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final Map<String, dynamic> eventDetails =
-    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Events'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Event Details:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text('Title: ${eventDetails['title']}'),
-            Text('Time: ${eventDetails['time']}'),
-            Text('Location: ${eventDetails['location']}'),
-            Text('Room Limit: ${eventDetails['roomLimit']}'),
-          ],
-        ),
-      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
