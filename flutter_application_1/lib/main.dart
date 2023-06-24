@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
-void main() => runApp(StudyJamApp());
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(StudyJamApp());
+}
 
 class StudyJamApp extends StatelessWidget {
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -307,6 +315,19 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     // Add your event saving code here
     print('Title: $title, Time: $time, Location: $location, Room Limit: $roomLimit');
+
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    firestore.collection('events').add({
+      'title': title,
+      'time': time,
+      'location': location,
+      'groupSize': roomLimit,
+    });
+
+
+
+
 
     // Redirect to the Events Page
     Navigator.pushNamed(
