@@ -21,7 +21,6 @@ class StudyJamApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
-        '/study': (context) => StudyPage(),
         '/createEvent': (context) => CreateEventPage(),
         '/events': (context) => EventsPage(),
       },
@@ -150,7 +149,7 @@ class LoginPage extends StatelessWidget {
                 print('Email: $email, Password: $password');
 
                 // Redirect to the Study Page
-                Navigator.pushNamed(context, '/study');
+                Navigator.pushNamed(context, '/events');
               },
               child: Text('Login'),
             ),
@@ -255,7 +254,7 @@ class RegisterPage extends StatelessWidget {
                 print('Name: $name, Email: $email, Password: $password');
 
                 // Redirect to the Study Page
-                Navigator.pushNamed(context, '/study');
+                Navigator.pushNamed(context, '/events');
               },
               child: Text('Register'),
             ),
@@ -266,27 +265,27 @@ class RegisterPage extends StatelessWidget {
   }
 }
 
-class StudyPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Study Jam. Let\'s Study'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              Navigator.pushNamed(context, '/createEvent');
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Text('Welcome to Study Jam. Let\'s Study'),
-      ),
-    );
-  }
-}
+//class StudyPage extends StatelessWidget {
+//  @override
+//  Widget build(BuildContext context) {
+//    return Scaffold(
+//      appBar: AppBar(
+//        title: Text('Study Jam. Let\'s Study'),
+//        actions: [
+//          IconButton(
+//            icon: Icon(Icons.add),
+//            onPressed: () {
+//              Navigator.pushNamed(context, '/createEvent');
+//            },
+//          ),
+//        ],
+//      ),
+//      body: Center(
+//        child: Text('Welcome to Study Jam. Let\'s Study'),
+//      ),
+//    );
+//  }
+//}
 
 class CreateEventPage extends StatefulWidget {
   @override
@@ -322,7 +321,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       'title': title,
       'time': time,
       'location': location,
-      'groupSize': roomLimit,
+      'groupSize': roomLimit,   
     });
 
 
@@ -404,29 +403,51 @@ class _CreateEventPageState extends State<CreateEventPage> {
 class EventsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Map<String, dynamic> eventDetails =
-    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Events'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              Navigator.pushNamed(context, '/createEvent');
+            },
+          ),
+        ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Event Details:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text('Title: ${eventDetails['title']}'),
-            Text('Time: ${eventDetails['time']}'),
-            Text('Location: ${eventDetails['location']}'),
-            Text('Room Limit: ${eventDetails['roomLimit']}'),
-          ],
-        ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('events').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+
+          return ListView(
+            children: snapshot.data!.docs.map((doc) {
+              final eventDetails = doc.data() as Map<String, dynamic>;
+
+              return ListTile(
+                title: Text(eventDetails['title']),
+                subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Time: ${eventDetails['time']}'),
+                  Text('Location: ${eventDetails['location']}'),
+                  Text('Group Size: ${eventDetails['groupSize']}'),
+                  ],
+                ),
+                onTap: () {
+                  // Navigate to a detailed event page passing eventDetails as arguments
+                  Navigator.pushNamed(context, '/eventDetails', arguments: eventDetails);
+                },
+              );
+            }).toList(),
+          );
+        },
       ),
     );
   }
