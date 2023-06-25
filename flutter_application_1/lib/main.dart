@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 void main() async {
@@ -527,7 +528,27 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends State<EventsPage> {
+  late SharedPreferences _prefs;
   Map<String, bool> joinedEvents = {};
+
+  @override
+  void initState() {
+    super.initState();
+    initializeSharedPreferences();
+  }
+
+  void initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+    final storedJoinedEvents = _prefs.getStringList('joinedEvents') ?? [];
+    setState(() {
+      joinedEvents = Map.fromIterable(storedJoinedEvents, key: (eventId) => eventId, value: (_) => true);
+    });
+  }
+
+  void updateSharedPreferences() {
+    final storedJoinedEvents = joinedEvents.keys.toList();
+    _prefs.setStringList('joinedEvents', storedJoinedEvents);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -599,6 +620,8 @@ class _EventsPageState extends State<EventsPage> {
                       FirebaseFirestore.instance.collection('events').doc(eventId).update({
                         'participants': eventDetails['participants'],
                       });
+
+                      updateSharedPreferences(); // Save the updated join status
                     });
                   },
                   child: Text(isJoined ? 'Leave' : 'Join'),
