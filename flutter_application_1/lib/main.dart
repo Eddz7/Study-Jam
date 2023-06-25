@@ -39,6 +39,7 @@ class StudyJamHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Study Jam'),
+        automaticallyImplyLeading: false, // Remove the back button
       ),
       body: Center(
         child: Column(
@@ -76,6 +77,7 @@ class StudyJamHomePage extends StatelessWidget {
     );
   }
 }
+
 
 
 class LoginPage extends StatelessWidget {
