@@ -336,6 +336,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
     // Add your event saving code here
     print('Title: $title, Start Time: $startTime, End Time: $endTime, Location: $location, Room Limit: $roomLimit');
 
+    // Get the current user's email
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    String? email = currentUser?.email;
+
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     firestore.collection('events').add({
@@ -345,19 +349,13 @@ class _CreateEventPageState extends State<CreateEventPage> {
       'location': location,
       'groupSize': roomLimit,
       'participants': 1,
+      'organizer' : email,
     });
 
     // Redirect to the Events Page
     Navigator.pushNamed(
       context,
       '/events',
-      //arguments: {
-      //  'title': title,
-      //  'start_time': startTime,
-      //  'end_time': endTime,
-      //  'location': location,
-      //  'roomLimit': roomLimit,
-      //},
     );
   }
 
@@ -497,6 +495,7 @@ class _EventsPageState extends State<EventsPage> {
                     Text('Location: ${eventDetails['location']}'),
                     Text('Group Size: ${eventDetails['groupSize']}'),
                     Text('Participants: $currentParticipantCount/${eventDetails['groupSize']}'),
+                    Text('Contact Organizer: ${eventDetails['organizer']}'),
                   ],
                 ),
                 trailing: ElevatedButton(
