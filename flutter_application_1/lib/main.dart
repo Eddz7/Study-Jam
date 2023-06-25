@@ -39,29 +39,36 @@ class StudyJamHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Study Jam'),
-        automaticallyImplyLeading: false, // Add this line to remove the back button
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               'Study Jam',
               style: TextStyle(fontSize: 24),
             ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              child: const Text('Login'),
+            SizedBox(height: 30),
+            SizedBox(
+              width: 100,
+              height: 30,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/login');
+                },
+                child: Text('Login'),
+              ),
             ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text('Register'),
+            SizedBox(height: 10),
+            SizedBox(
+              width: 100,
+              height: 30,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: Text('Register'),
+              ),
             ),
           ],
         ),
