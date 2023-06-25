@@ -247,6 +247,7 @@ class RegisterPage extends StatelessWidget {
   }
 }
 
+
 class CreateEventPage extends StatefulWidget {
   @override
   _CreateEventPageState createState() => _CreateEventPageState();
@@ -262,39 +263,75 @@ class _CreateEventPageState extends State<CreateEventPage> {
   String errorTextStartTime = '';
   String errorTextRoom = '';
 
+  Future<void> _selectStartTime() async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+
+    if (selectedTime != null) {
+      final formattedTime = selectedTime.format(context);
+      startTimeController.text = formattedTime;
+    }
+  }
+
+  Future<void> _selectEndTime() async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+
+    if (selectedTime != null) {
+      final formattedTime = selectedTime.format(context);
+      endTimeController.text = formattedTime;
+    }
+  }
+
   void saveEvent() {
-  String title = titleController.text;
-  String startTime = startTimeController.text;
-  String endTime = endTimeController.text;
-  String location = locationController.text;
-  String roomLimit = roomLimitController.text;
+    String title = titleController.text;
+    String startTime = startTimeController.text;
+    String endTime = endTimeController.text;
+    String location = locationController.text;
+    String roomLimit = roomLimitController.text;
 
-  setState(() {
-    errorTextStartTime = '';
-    errorTextEndTime = '';
-    errorTextRoom = '';
-  });
-
-  if (!isValidTime(startTime)) {
     setState(() {
-      errorTextStartTime = 'Please enter a valid time (HH:MM)';
+      errorTextStartTime = '';
+      errorTextEndTime = '';
+      errorTextRoom = '';
     });
-  }
-  if (!isValidTime(endTime)) {
-    setState(() {
-      errorTextEndTime = 'Please enter a valid time (HH:MM)';
-    });
-  }
 
-  if (!isNumber(roomLimit)) {
-    setState(() {
-      errorTextRoom = 'Please enter a valid number';
-    });
-  }
+    if (!isValidTime(startTime)) {
+      setState(() {
+        errorTextStartTime = 'Please enter a valid time (HH:MM)';
+      });
+    }
+    if (!isValidTime(endTime)) {
+      setState(() {
+        errorTextEndTime = 'Please enter a valid time (HH:MM)';
+      });
+    }
 
-  if (!isValidTime(startTime) || !isValidTime(endTime) || !isNumber(roomLimit)) {
-    return;
-  }
+    if (!isNumber(roomLimit)) {
+      setState(() {
+        errorTextRoom = 'Please enter a valid number';
+      });
+    }
+
+    if (!isValidTime(startTime) || !isValidTime(endTime) || !isNumber(roomLimit)) {
+      return;
+    }
 
     // Add your event saving code here
     print('Title: $title, Start Time: $startTime, End Time: $endTime, Location: $location, Room Limit: $roomLimit');
@@ -307,30 +344,29 @@ class _CreateEventPageState extends State<CreateEventPage> {
       'end_time': endTime,
       'location': location,
       'groupSize': roomLimit,
+      'participants': 1,
     });
-
-
-
-
 
     // Redirect to the Events Page
     Navigator.pushNamed(
       context,
       '/events',
-      arguments: {
-        'title': title,
-        'start_time': startTime,
-        'end_time': endTime,
-        'location': location,
-        'roomLimit': roomLimit,
-      },
+      //arguments: {
+      //  'title': title,
+      //  'start_time': startTime,
+      //  'end_time': endTime,
+      //  'location': location,
+      //  'roomLimit': roomLimit,
+      //},
     );
   }
 
   bool isValidTime(String time) {
-    RegExp timeRegex = RegExp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$');
+    RegExp timeRegex = RegExp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9] (AM|PM)$');
     return timeRegex.hasMatch(time);
   }
+
+
   bool isNumber(String value) {
     if (value == null) return false;
     final numericRegex = RegExp(r'^[0-9]+$');
@@ -343,7 +379,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       appBar: AppBar(
         title: Text('Create an Event'),
       ),
-      body: SingleChildScrollView( // Wrap with SingleChildScrollView
+      body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(
@@ -356,19 +392,29 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 ),
               ),
               SizedBox(height: 10),
-              TextField(
-                controller: startTimeController,
-                decoration: InputDecoration(
-                  labelText: 'Start Time',
-                  errorText: errorTextStartTime.isNotEmpty ? errorTextStartTime : null,
+              InkWell(
+                onTap: _selectStartTime,
+                child: IgnorePointer(
+                  child: TextField(
+                    controller: startTimeController,
+                    decoration: InputDecoration(
+                      labelText: 'Start Time',
+                      errorText: errorTextStartTime.isNotEmpty ? errorTextStartTime : null,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 10),
-              TextField(
-                controller: endTimeController,
-                decoration: InputDecoration(
-                  labelText: 'End Time',
-                  errorText: errorTextEndTime.isNotEmpty ? errorTextEndTime : null,
+              InkWell(
+                onTap: _selectEndTime,
+                child: IgnorePointer(
+                  child: TextField(
+                    controller: endTimeController,
+                    decoration: InputDecoration(
+                      labelText: 'End Time',
+                      errorText: errorTextEndTime.isNotEmpty ? errorTextEndTime : null,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 10),
@@ -400,7 +446,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
 }
 
 
-class EventsPage extends StatelessWidget {
+
+class EventsPage extends StatefulWidget {
+  @override
+  _EventsPageState createState() => _EventsPageState();
+}
+
+class _EventsPageState extends State<EventsPage> {
+  Map<String, bool> joinedEvents = {};
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -429,21 +483,31 @@ class EventsPage extends StatelessWidget {
           return ListView(
             children: snapshot.data!.docs.map((doc) {
               final eventDetails = doc.data() as Map<String, dynamic>;
+              final eventId = doc.id;
 
               return ListTile(
                 title: Text(eventDetails['title']),
                 subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Time: ${eventDetails['start_time']} - ${eventDetails['end_time']}'),
-                  Text('Location: ${eventDetails['location']}'),
-                  Text('Group Size: ${eventDetails['groupSize']}'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Time: ${eventDetails['start_time']} - ${eventDetails['end_time']}'),
+                    Text('Location: ${eventDetails['location']}'),
+                    Text('Group Size: ${eventDetails['groupSize']}'),
+                    Text('Participants: ${eventDetails['participants']}/${eventDetails['groupSize']}'),
                   ],
                 ),
-                onTap: () {
-                  // Navigate to a detailed event page passing eventDetails as arguments
-                  Navigator.pushNamed(context, '/eventDetails', arguments: eventDetails);
-                },
+                trailing: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      if (joinedEvents.containsKey(eventId)) {
+                        joinedEvents.remove(eventId);
+                      } else {
+                        joinedEvents[eventId] = true;
+                      }
+                    });
+                  },
+                  child: Text(joinedEvents.containsKey(eventId) ? 'Leave' : 'Join'),
+                ),
               );
             }).toList(),
           );
