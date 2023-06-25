@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -39,23 +41,23 @@ class StudyJamHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               'Study Jam',
               style: TextStyle(fontSize: 24),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/login');
               },
-              child: Text('Login'),
+              child: const Text('Login'),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
               },
-              child: Text('Register'),
+              child: const Text('Register'),
             ),
           ],
         ),
@@ -67,12 +69,51 @@ class StudyJamHomePage extends StatelessWidget {
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> loginWithEmailAndPassword(BuildContext context) async {
+    String email = emailController.text;
+    String password = passwordController.text;
+
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // User is successfully logged in
+      print('User logged in: ${userCredential.user?.uid}');
+
+      // Redirect to the Events Page
+      Navigator.pushNamed(context, '/events');
+    } catch (e) {
+      // Display an error dialog if login fails
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Login Failed'),
+            //content: Text(e.toString()),\
+            content: const Text("Incorrect username or password"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -92,67 +133,14 @@ class LoginPage extends StatelessWidget {
                 labelText: 'Password',
               ),
               obscureText: true,
-            ),
-            SizedBox(height: 20),
+            ),  
+            const SizedBox(height: 20), 
             ElevatedButton(
               onPressed: () {
-                // Perform login logic here
-                String email = emailController.text;
-                String password = passwordController.text;
-
-                // Check for a valid email format using regex
-                RegExp emailRegex = RegExp(
-                    r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-                if (!emailRegex.hasMatch(email)) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Invalid Email'),
-                        content: Text('Please enter a valid email.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if email is invalid
-                }
-
-                if (password.isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('No Password'),
-                        content: Text('Please enter a password.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if password is empty
-                }
-
-                // Add your login code here
-                print('Email: $email, Password: $password');
-
-                // Redirect to the Study Page
-                Navigator.pushNamed(context, '/events');
+                loginWithEmailAndPassword(context); // Call the new login method
               },
               child: Text('Login'),
-            ),
+              ),
           ],
         ),
       ),
@@ -164,6 +152,54 @@ class RegisterPage extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> registerWithEmailAndPassword(BuildContext context) async {
+    String name = nameController.text;
+    String email = emailController.text;
+    String password = passwordController.text;
+
+    try {
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // User is successfully registered and logged in
+      print('User registered: ${userCredential.user?.uid}');
+
+      // Store user information in Firestore
+      await _firestore.collection('users').doc(userCredential.user?.uid).set({
+        'name': name,
+        'email': email,
+      });
+
+      // Redirect to the Events Page
+      Navigator.pushNamed(context, '/events');
+    } catch (e) {
+      // Display an error dialog if registration fails
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Registration Failed'),
+            content: const Text("The email address is already in use by another account."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,62 +235,8 @@ class RegisterPage extends StatelessWidget {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Perform registration logic here
-                String name = nameController.text;
-                String email = emailController.text;
-                String password = passwordController.text;
-                // Add your registration code here
-
-                // Check for a valid email format using regex
-                RegExp emailRegex = RegExp(
-                    r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-                if (!emailRegex.hasMatch(email)) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Invalid Email'),
-                        content: Text('Please enter a valid email.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if email is invalid
-                }
-
-                if (password.isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('No Password'),
-                        content: Text('Please enter a password.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  return; // Exit the method if password is empty
-                }
-
-                print('Name: $name, Email: $email, Password: $password');
-
-                // Redirect to the Study Page
-                Navigator.pushNamed(context, '/events');
+               onPressed: () {
+                registerWithEmailAndPassword(context); // Call the new registration method
               },
               child: Text('Register'),
             ),
@@ -264,28 +246,6 @@ class RegisterPage extends StatelessWidget {
     );
   }
 }
-
-//class StudyPage extends StatelessWidget {
-//  @override
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//      appBar: AppBar(
-//        title: Text('Study Jam. Let\'s Study'),
-//        actions: [
-//          IconButton(
-//            icon: Icon(Icons.add),
-//            onPressed: () {
-//              Navigator.pushNamed(context, '/createEvent');
-//            },
-//          ),
-//        ],
-//      ),
-//      body: Center(
-//        child: Text('Welcome to Study Jam. Let\'s Study'),
-//      ),
-//    );
-//  }
-//}
 
 class CreateEventPage extends StatefulWidget {
   @override
