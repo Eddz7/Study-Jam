@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -247,7 +249,6 @@ class RegisterPage extends StatelessWidget {
   }
 }
 
-
 class CreateEventPage extends StatefulWidget {
   @override
   _CreateEventPageState createState() => _CreateEventPageState();
@@ -259,9 +260,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController endTimeController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController roomLimitController = TextEditingController();
+  final TextEditingController dateLimitController = TextEditingController();
   String errorTextEndTime = '';
   String errorTextStartTime = '';
   String errorTextRoom = '';
+  String errorTextDate = '';
 
   Future<void> _selectStartTime() async {
     final TimeOfDay? selectedTime = await showTimePicker(
@@ -299,17 +302,33 @@ class _CreateEventPageState extends State<CreateEventPage> {
     }
   }
 
+  Future<void> _selectDate() async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+      dateLimitController.text = formattedDate;
+    }
+  }
+
   void saveEvent() {
     String title = titleController.text;
     String startTime = startTimeController.text;
     String endTime = endTimeController.text;
     String location = locationController.text;
     String roomLimit = roomLimitController.text;
+    String date = dateLimitController.text;
 
     setState(() {
       errorTextStartTime = '';
       errorTextEndTime = '';
       errorTextRoom = '';
+      errorTextDate = '';
     });
 
     if (!isValidTime(startTime)) {
@@ -329,34 +348,61 @@ class _CreateEventPageState extends State<CreateEventPage> {
       });
     }
 
-    if (!isValidTime(startTime) || !isValidTime(endTime) || !isNumber(roomLimit)) {
+    if (!isValidDate(date)) {
+      setState(() {
+        errorTextDate = 'Please enter a valid date (YYYY-MM-DD)';
+      });
+    }
+
+    if (!isValidTime(startTime) ||
+        !isValidTime(endTime) ||
+        !isNumber(roomLimit) ||
+        !isValidDate(date)) {
       return;
     }
 
-    // Add your event saving code here
-    print('Title: $title, Start Time: $startTime, End Time: $endTime, Location: $location, Room Limit: $roomLimit');
+    if (startTime == endTime) {
+      setState(() {
+        errorTextStartTime = 'Start time and end time cannot be the same';
+        errorTextEndTime = 'Start time and end time cannot be the same';
+      });
+      return;
+    }
 
-    // Get the current user's email
+    //Get the current user's email
     User? currentUser = FirebaseAuth.instance.currentUser;
     String? email = currentUser?.email;
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+    date = formatDate(date);
+
     firestore.collection('events').add({
       'title': title,
+      'date': date,
       'start_time': startTime,
       'end_time': endTime,
       'location': location,
       'groupSize': roomLimit,
       'participants': 1,
-      'organizer' : email,
+      'organizer': email,
     });
 
-    // Redirect to the Events Page
+    //Redirect to the Events Page
     Navigator.pushNamed(
       context,
       '/events',
     );
+  }
+
+  String formatDate(String dateString) {
+    try {
+      DateTime date = DateTime.parse(dateString);
+      DateFormat formatter = DateFormat('MMMM d, yyyy');
+      return formatter.format(date);
+    } catch (e) {
+      return '';
+    }
   }
 
   bool isValidTime(String time) {
@@ -364,6 +410,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
     return timeRegex.hasMatch(time);
   }
 
+  bool isValidDate(String dateString) {
+    try {
+      DateTime date = DateTime.parse(dateString);
+      DateTime now = DateTime.now();
+      return !date.isBefore(now); // Check if the date is not in the past
+    } catch (e) {
+      return false;
+    }
+  }
 
   bool isNumber(String value) {
     if (value == null) return false;
@@ -390,6 +445,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 ),
               ),
               SizedBox(height: 10),
+              TextField(
+                controller: dateLimitController,
+                onTap: _selectDate,
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Date',
+                  errorText: errorTextDate.isNotEmpty ? errorTextDate : null,
+                ),
+              ),
+              SizedBox(height: 10),
               InkWell(
                 onTap: _selectStartTime,
                 child: IgnorePointer(
@@ -397,7 +462,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     controller: startTimeController,
                     decoration: InputDecoration(
                       labelText: 'Start Time',
-                      errorText: errorTextStartTime.isNotEmpty ? errorTextStartTime : null,
+                      errorText:
+                          errorTextStartTime.isNotEmpty ? errorTextStartTime : null,
                     ),
                   ),
                 ),
@@ -410,7 +476,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     controller: endTimeController,
                     decoration: InputDecoration(
                       labelText: 'End Time',
-                      errorText: errorTextEndTime.isNotEmpty ? errorTextEndTime : null,
+                      errorText:
+                          errorTextEndTime.isNotEmpty ? errorTextEndTime : null,
                     ),
                   ),
                 ),
@@ -442,6 +509,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
     );
   }
 }
+
+
 
 
 
@@ -491,6 +560,7 @@ class _EventsPageState extends State<EventsPage> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text('Date: ${eventDetails['date']}'),
                     Text('Time: ${eventDetails['start_time']} - ${eventDetails['end_time']}'),
                     Text('Location: ${eventDetails['location']}'),
                     Text('Group Size: ${eventDetails['groupSize']}'),
@@ -524,3 +594,4 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 }
+
