@@ -453,6 +453,7 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends State<EventsPage> {
+  int participantCount = 0;
   Map<String, bool> joinedEvents = {};
 
   @override
@@ -485,6 +486,10 @@ class _EventsPageState extends State<EventsPage> {
               final eventDetails = doc.data() as Map<String, dynamic>;
               final eventId = doc.id;
 
+              final isJoined = joinedEvents.containsKey(eventId);
+              final currentParticipantCount =
+                  eventDetails['participants'] + (isJoined ? 1 : 0);
+
               return ListTile(
                 title: Text(eventDetails['title']),
                 subtitle: Column(
@@ -493,20 +498,22 @@ class _EventsPageState extends State<EventsPage> {
                     Text('Time: ${eventDetails['start_time']} - ${eventDetails['end_time']}'),
                     Text('Location: ${eventDetails['location']}'),
                     Text('Group Size: ${eventDetails['groupSize']}'),
-                    Text('Participants: ${eventDetails['participants']}/${eventDetails['groupSize']}'),
+                    Text('Participants: $currentParticipantCount/${eventDetails['groupSize']}'),
                   ],
                 ),
                 trailing: ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      if (joinedEvents.containsKey(eventId)) {
+                      if (isJoined) {
                         joinedEvents.remove(eventId);
+                        eventDetails['participants'] -= 1; // Decrement participant count
                       } else {
                         joinedEvents[eventId] = true;
+                        eventDetails['participants'] += 1; // Increment participant count
                       }
                     });
                   },
-                  child: Text(joinedEvents.containsKey(eventId) ? 'Leave' : 'Join'),
+                  child: Text(isJoined ? 'Leave' : 'Join'),
                 ),
               );
             }).toList(),
@@ -516,3 +523,4 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 }
+
