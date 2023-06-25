@@ -254,34 +254,59 @@ class CreateEventPage extends StatefulWidget {
 
 class _CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController titleController = TextEditingController();
-  final TextEditingController timeController = TextEditingController();
+  final TextEditingController startTimeController = TextEditingController();
+  final TextEditingController endTimeController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
   final TextEditingController roomLimitController = TextEditingController();
-  String errorText = '';
+  String errorTextEndTime = '';
+  String errorTextStartTime = '';
+  String errorTextRoom = '';
 
   void saveEvent() {
-    String title = titleController.text;
-    String time = timeController.text;
-    String location = locationController.text;
-    String roomLimit = roomLimitController.text;
+  String title = titleController.text;
+  String startTime = startTimeController.text;
+  String endTime = endTimeController.text;
+  String location = locationController.text;
+  String roomLimit = roomLimitController.text;
 
-    if (!isValidTime(time)) {
-      setState(() {
-        errorText = 'Please enter a valid time (HH:MM)';
-      });
-      return;
-    }
+  setState(() {
+    errorTextStartTime = '';
+    errorTextEndTime = '';
+    errorTextRoom = '';
+  });
+
+  if (!isValidTime(startTime)) {
+    setState(() {
+      errorTextStartTime = 'Please enter a valid time (HH:MM)';
+    });
+  }
+  if (!isValidTime(endTime)) {
+    setState(() {
+      errorTextEndTime = 'Please enter a valid time (HH:MM)';
+    });
+  }
+
+  if (!isNumber(roomLimit)) {
+    setState(() {
+      errorTextRoom = 'Please enter a valid number';
+    });
+  }
+
+  if (!isValidTime(startTime) || !isValidTime(endTime) || !isNumber(roomLimit)) {
+    return;
+  }
 
     // Add your event saving code here
-    print('Title: $title, Time: $time, Location: $location, Room Limit: $roomLimit');
+    print('Title: $title, Start Time: $startTime, End Time: $endTime, Location: $location, Room Limit: $roomLimit');
 
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     firestore.collection('events').add({
       'title': title,
-      'time': time,
+      'start_time': startTime,
+      'end_time': endTime,
       'location': location,
-      'groupSize': roomLimit,   
+      'groupSize': roomLimit,
     });
 
 
@@ -294,7 +319,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
       '/events',
       arguments: {
         'title': title,
-        'time': time,
+        'start_time': startTime,
+        'end_time': endTime,
         'location': location,
         'roomLimit': roomLimit,
       },
@@ -304,6 +330,11 @@ class _CreateEventPageState extends State<CreateEventPage> {
   bool isValidTime(String time) {
     RegExp timeRegex = RegExp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$');
     return timeRegex.hasMatch(time);
+  }
+  bool isNumber(String value) {
+    if (value == null) return false;
+    final numericRegex = RegExp(r'^[0-9]+$');
+    return numericRegex.hasMatch(value);
   }
 
   @override
@@ -326,10 +357,18 @@ class _CreateEventPageState extends State<CreateEventPage> {
               ),
               SizedBox(height: 10),
               TextField(
-                controller: timeController,
+                controller: startTimeController,
                 decoration: InputDecoration(
-                  labelText: 'Time',
-                  errorText: errorText.isNotEmpty ? errorText : null,
+                  labelText: 'Start Time',
+                  errorText: errorTextStartTime.isNotEmpty ? errorTextStartTime : null,
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: endTimeController,
+                decoration: InputDecoration(
+                  labelText: 'End Time',
+                  errorText: errorTextEndTime.isNotEmpty ? errorTextEndTime : null,
                 ),
               ),
               SizedBox(height: 10),
@@ -344,6 +383,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 controller: roomLimitController,
                 decoration: InputDecoration(
                   labelText: 'Room Limit',
+                  errorText: errorTextRoom.isNotEmpty ? errorTextRoom : null,
                 ),
               ),
               SizedBox(height: 20),
@@ -395,7 +435,7 @@ class EventsPage extends StatelessWidget {
                 subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Time: ${eventDetails['time']}'),
+                  Text('Time: ${eventDetails['start_time']} - ${eventDetails['end_time']}'),
                   Text('Location: ${eventDetails['location']}'),
                   Text('Group Size: ${eventDetails['groupSize']}'),
                   ],
