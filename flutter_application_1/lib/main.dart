@@ -38,6 +38,7 @@ class StudyJamHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Study Jam'),
+        automaticallyImplyLeading: false, // Add this line to remove the back button
       ),
       body: Center(
         child: Column(
@@ -67,6 +68,7 @@ class StudyJamHomePage extends StatelessWidget {
     );
   }
 }
+
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -115,7 +117,13 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: Text('Login'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushNamed(context, '/');
+          },
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -128,27 +136,25 @@ class LoginPage extends StatelessWidget {
                 labelText: 'Email',
               ),
             ),
-            SizedBox(height: 10),
             TextField(
               controller: passwordController,
               decoration: InputDecoration(
                 labelText: 'Password',
               ),
               obscureText: true,
-            ),  
-            const SizedBox(height: 20), 
+            ),
+            SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () {
-                loginWithEmailAndPassword(context); // Call the new login method
-              },
+              onPressed: () => loginWithEmailAndPassword(context),
               child: Text('Login'),
-              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
 
 class RegisterPage extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -528,6 +534,12 @@ class _EventsPageState extends State<EventsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Events'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushNamed(context, '/login');
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -576,14 +588,12 @@ class _EventsPageState extends State<EventsPage> {
                         joinedEvents.remove(eventId);
                         eventDetails['participants'] -= 1; // Decrement participant count
                       } else {
-                        if (eventDetails['participants'] == eventDetails['groupSize']){
+                        if (eventDetails['participants'] == eventDetails['groupSize']) {
                           return;
-                        }
-                        else{
+                        } else {
                           joinedEvents[eventId] = true;
                           eventDetails['participants'] += 1; // Increment participant count
                         }
-                        
                       }
                       // Save the updated participant count to Firestore
                       FirebaseFirestore.instance.collection('events').doc(eventId).update({
