@@ -453,7 +453,6 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends State<EventsPage> {
-  int participantCount = 0;
   Map<String, bool> joinedEvents = {};
 
   @override
@@ -487,8 +486,7 @@ class _EventsPageState extends State<EventsPage> {
               final eventId = doc.id;
 
               final isJoined = joinedEvents.containsKey(eventId);
-              final currentParticipantCount =
-                  eventDetails['participants'] + (isJoined ? 1 : 0);
+              final currentParticipantCount = eventDetails['participants'];
 
               return ListTile(
                 title: Text(eventDetails['title']),
@@ -511,6 +509,10 @@ class _EventsPageState extends State<EventsPage> {
                         joinedEvents[eventId] = true;
                         eventDetails['participants'] += 1; // Increment participant count
                       }
+                      // Save the updated participant count to Firestore
+                      FirebaseFirestore.instance.collection('events').doc(eventId).update({
+                        'participants': eventDetails['participants'],
+                      });
                     });
                   },
                   child: Text(isJoined ? 'Leave' : 'Join'),
@@ -523,4 +525,3 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 }
-
