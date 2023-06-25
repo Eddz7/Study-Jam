@@ -376,6 +376,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     date = formatDate(date);
+    int roomLimitInt = int.parse(roomLimit);
 
     firestore.collection('events').add({
       'title': title,
@@ -383,7 +384,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
       'start_time': startTime,
       'end_time': endTime,
       'location': location,
-      'groupSize': roomLimit,
+      'groupSize': roomLimitInt,
       'participants': 1,
       'organizer': email,
     });
@@ -575,8 +576,14 @@ class _EventsPageState extends State<EventsPage> {
                         joinedEvents.remove(eventId);
                         eventDetails['participants'] -= 1; // Decrement participant count
                       } else {
-                        joinedEvents[eventId] = true;
-                        eventDetails['participants'] += 1; // Increment participant count
+                        if (eventDetails['participants'] == eventDetails['groupSize']){
+                          return;
+                        }
+                        else{
+                          joinedEvents[eventId] = true;
+                          eventDetails['participants'] += 1; // Increment participant count
+                        }
+                        
                       }
                       // Save the updated participant count to Firestore
                       FirebaseFirestore.instance.collection('events').doc(eventId).update({
@@ -594,4 +601,3 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 }
-
