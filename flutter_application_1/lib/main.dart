@@ -175,36 +175,22 @@ class RegisterPage extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> registerWithEmailAndPassword(BuildContext context) async {
-    String name = nameController.text;
-    String email = emailController.text;
-    String password = passwordController.text;
+  String name = nameController.text;
+  String email = emailController.text;
+  String password = passwordController.text;
 
-    try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    // Check if the email is already registered
+    List<String> signInMethods = await _auth.fetchSignInMethodsForEmail(email);
 
-      // User is successfully registered and logged in
-      print('User registered: ${userCredential.user?.uid}');
-
-      // Store user information in Firestore
-      await _firestore.collection('users').doc(userCredential.user?.uid).set({
-        'name': name,
-        'email': email,
-      });
-
-      // Redirect to the Events Page
-      Navigator.pushNamed(context, '/events');
-    } catch (e) {
-      // Display an error dialog if registration fails
+    if (signInMethods.isNotEmpty) {
+      // Email is already registered
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Registration Failed'),
-            content: const Text("The email address is already in use by another account."),
+            content: const Text("An error occured while registering. Please try again later"),
             actions: [
               TextButton(
                 onPressed: () {
@@ -216,8 +202,46 @@ class RegisterPage extends StatelessWidget {
           );
         },
       );
+      return;
     }
+
+    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    // User is successfully registered and logged in
+    print('User registered: ${userCredential.user?.uid}');
+
+    // Store user information in Firestore
+    await _firestore.collection('users').doc(userCredential.user?.uid).set({
+      'name': name,
+      'email': email,
+    });
+
+    // Redirect to the Events Page
+    Navigator.pushNamed(context, '/events');
+  } catch (e) {
+    // Display an error dialog if registration fails
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Registration Failed'),
+          content: const Text("The email address is already in use or password doesn't meet requirements. Passwords must be at least length 6 & contain letters and numbers"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
